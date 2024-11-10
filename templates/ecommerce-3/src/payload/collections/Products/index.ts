@@ -9,8 +9,6 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
-import type { ProductVariant } from './ui/types'
-
 import { admins } from '../../access/admins'
 import { CallToAction } from '../../blocks/CallToAction'
 import { Content } from '../../blocks/Content'
@@ -20,11 +18,16 @@ import { adminsOrPublished } from './access/adminsOrPublished'
 import { beforeProductChange } from './hooks/beforeChange'
 import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
 import { revalidateProduct } from './hooks/revalidateProduct'
-import { KeyLabel } from './ui/RowLabels/KeyLabel'
-import { OptionLabel } from './ui/RowLabels/OptionLabel'
-import { VariantLabel } from './ui/RowLabels/VariantLabel'
-import { StripeProductSelect } from './ui/StripeProductSelect'
-import { VariantSelect } from './ui/VariantSelect'
+
+// Add this type definition at the top of the file
+interface ProductVariant {
+  options?: string[]
+  variants?: ProductVariant[]
+}
+
+interface SiblingData {
+  variants?: ProductVariant[]
+}
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -37,16 +40,27 @@ export const Products: CollectionConfig = {
   admin: {
     defaultColumns: ['title', 'stripeProductID', '_status'],
     livePreview: {
-      url: ({ data }) => {
+      url: ({ data }: { data: { slug?: string } }) => {
         const path = generatePreviewPath({
           path: `/product/${typeof data?.slug === 'string' ? data.slug : ''}`,
         })
         return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`
       },
     },
-    preview: (doc) =>
+    preview: (doc: { slug?: string }) =>
       generatePreviewPath({ path: `/product/${typeof doc?.slug === 'string' ? doc.slug : ''}` }),
     useAsTitle: 'title',
+  },
+  hooks: {
+    afterChange: [revalidateProduct],
+    afterDelete: [deleteProductFromCarts],
+    beforeChange: [beforeProductChange],
+  },
+  versions: {
+    drafts: {
+      autosave: true,
+    },
+    maxPerDoc: 50,
   },
   fields: [
     {
@@ -58,10 +72,10 @@ export const Products: CollectionConfig = {
       name: 'publishedOn',
       type: 'date',
       admin: {
+        position: 'sidebar',
         date: {
           pickerAppearance: 'dayAndTime',
         },
-        position: 'sidebar',
       },
       hooks: {
         beforeChange: [
@@ -78,6 +92,7 @@ export const Products: CollectionConfig = {
       type: 'tabs',
       tabs: [
         {
+          label: 'Content',
           fields: [
             {
               name: 'description',
@@ -118,7 +133,6 @@ export const Products: CollectionConfig = {
               blocks: [CallToAction, Content, MediaBlock],
             },
           ],
-          label: 'Content',
         },
         {
           fields: [
@@ -138,7 +152,7 @@ export const Products: CollectionConfig = {
                   type: 'array',
                   admin: {
                     components: {
-                      RowLabel: KeyLabel,
+                      Field: '@/payload/collections/Products/ui/RowLabels/KeyLabel',
                     },
                     initCollapsed: true,
                   },
@@ -163,7 +177,7 @@ export const Products: CollectionConfig = {
                       type: 'array',
                       admin: {
                         components: {
-                          RowLabel: OptionLabel,
+                          Field: '@/payload/collections/Products/ui/RowLabels/OptionLabel',
                         },
                         initCollapsed: true,
                       },
@@ -194,7 +208,7 @@ export const Products: CollectionConfig = {
                   type: 'array',
                   admin: {
                     components: {
-                      RowLabel: VariantLabel,
+                      Field: '@/payload/collections/Products/ui/RowLabels/VariantLabel',
                     },
                     condition: (data, siblingData) => {
                       return Boolean(siblingData?.options?.length)
@@ -206,7 +220,7 @@ export const Products: CollectionConfig = {
                       type: 'text',
                       admin: {
                         components: {
-                          Field: VariantSelect,
+                          Field: '@/payload/collections/Products/ui/VariantSelect',
                         },
                       },
                       hasMany: true,
@@ -217,7 +231,7 @@ export const Products: CollectionConfig = {
                       type: 'text',
                       admin: {
                         components: {
-                          Field: StripeProductSelect,
+                          Field: '@/payload/collections/Products/ui/StripeProductSelect',
                         },
                       },
                       label: 'Stripe Product ID',
@@ -263,12 +277,12 @@ export const Products: CollectionConfig = {
                     singular: 'Variant',
                   },
                   minRows: 1,
-                  validate: (value, { siblingData }) => {
-                    if (siblingData.variants.length) {
+                  validate: (value: unknown, { siblingData }: { siblingData: SiblingData }) => {
+                    if (siblingData?.variants?.length) {
                       const hasDuplicate = siblingData.variants.some(
-                        (variant: ProductVariant, index) => {
+                        (variant: ProductVariant, index: number) => {
                           // Check this against other variants
-                          const dedupedArray = [...siblingData.variants].filter(
+                          const dedupedArray = (siblingData.variants || []).filter(
                             (_, i) => i !== index,
                           )
 
@@ -300,7 +314,7 @@ export const Products: CollectionConfig = {
               type: 'text',
               admin: {
                 components: {
-                  Field: StripeProductSelect,
+                  Field: '@/payload/collections/Products/ui/StripeProductSelect',
                 },
                 condition: (data) => !data.enableVariants,
               },
@@ -370,24 +384,15 @@ export const Products: CollectionConfig = {
     slugField(),
     {
       name: 'skipSync',
+      label: 'Skip Sync',
       type: 'checkbox',
       admin: {
-        hidden: true,
         position: 'sidebar',
         readOnly: true,
+        hidden: true,
       },
-      label: 'Skip Sync',
     },
   ],
-  hooks: {
-    afterChange: [revalidateProduct],
-    afterDelete: [deleteProductFromCarts],
-    beforeChange: [beforeProductChange],
-  },
-  versions: {
-    drafts: {
-      autosave: true,
-    },
-    maxPerDoc: 50,
-  },
 }
+
+export default Products

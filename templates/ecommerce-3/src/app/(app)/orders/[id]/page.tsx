@@ -86,13 +86,17 @@ export default async function Order({
       <hr />
       <div className="">
         <h4 className="">Items</h4>
-        <ItemsList items={order.items} />
+        <ItemsList items={order.items || []} />
       </div>
     </div>
   )
 }
 
-export async function generateMetadata({ params: { id } }): Promise<Metadata> {
+export async function generateMetadata({
+  params: { id },
+}: {
+  params: { id: string }
+}): Promise<Metadata> {
   return {
     description: `Order details for order ${id}.`,
     openGraph: mergeOpenGraph({

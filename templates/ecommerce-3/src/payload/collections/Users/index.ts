@@ -13,7 +13,7 @@ import { loginAfterCreate } from './hooks/loginAfterCreate'
 export const Users: CollectionConfig = {
   slug: 'users',
   access: {
-    admin: ({ req: { user } }) => checkRole(['admin'], user),
+    admin: ({ req: { user } }) => checkRole(['admin'], user as User),
     create: anyone,
     delete: admins,
     read: adminsAndUser,
@@ -25,10 +25,10 @@ export const Users: CollectionConfig = {
   },
   auth: {
     forgotPassword: {
-      generateEmailHTML: ({ req, token, user }) => {
-        // Use the token provided to allow your user to reset their password
-        const resetPasswordURL = `${process.env.NEXT_PUBLIC_SERVER_URL}/reset-password?token=${token}`
-        const email = (user as User).email
+      generateEmailHTML: (args) => {
+        // Safely access properties with optional chaining
+        const resetPasswordURL = `${process.env.NEXT_PUBLIC_SERVER_URL}/reset-password?token=${args?.token}`
+        const email = (args?.user as User)?.email
         return `
           <!doctype html>
           <html>
@@ -66,9 +66,8 @@ export const Users: CollectionConfig = {
       name: 'roles',
       type: 'select',
       access: {
-        /* create: admins, */
-        read: admins,
-        update: admins,
+        read: ({ req: { user } }) => checkRole(['admin'], user as User),
+        update: ({ req: { user } }) => checkRole(['admin'], user as User),
       },
       defaultValue: ['customer'],
       hasMany: true,
@@ -90,8 +89,7 @@ export const Users: CollectionConfig = {
       name: 'orders',
       type: 'relationship',
       access: {
-        /* create: admins, */
-        update: admins,
+        update: ({ req: { user } }) => checkRole(['admin'], user as User),
       },
       hasMany: true,
       label: 'Orders',
@@ -101,9 +99,8 @@ export const Users: CollectionConfig = {
       name: 'stripeCustomerID',
       type: 'text',
       access: {
-        /* create: admins, */
-        read: admins,
-        update: admins,
+        read: ({ req: { user } }) => checkRole(['admin'], user as User),
+        update: ({ req: { user } }) => checkRole(['admin'], user as User),
       },
       admin: {
         position: 'sidebar',

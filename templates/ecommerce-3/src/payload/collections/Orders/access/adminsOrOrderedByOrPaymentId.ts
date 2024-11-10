@@ -1,14 +1,17 @@
-import type { Access } from 'payload'
-
 import qs from 'qs'
+import { ParsedQs } from 'qs'
 
 import { checkRole } from '../../Users/checkRole'
+import { Access } from 'payload'
+import { User } from '@/payload-types'
 
 /**
  * Access control for Orders based on the user's role and the query string
  */
-export const adminsOrOrderedByOrPaymentId: Access = ({ data, req, req: { user } }) => {
-  if (checkRole(['admin'], user)) {
+export const adminsOrOrderedByOrPaymentId: Access = ({ req }) => {
+  const typedUser = req.user as User | undefined
+
+  if (checkRole(['admin'], typedUser)) {
     return true
   }
 
@@ -16,21 +19,31 @@ export const adminsOrOrderedByOrPaymentId: Access = ({ data, req, req: { user } 
   const where = searchParams.get('where')
 
   const query = where ? qs.parse(where) : {}
-  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-  // @ts-ignore
-  const paymentIntentID = query?.stripePaymentIntentID?.equals
+  const paymentIntentID = (query.stripePaymentIntentID as ParsedQs)?.equals as string | undefined
 
   if (paymentIntentID) {
     return {
-      stripePaymentIntentID: {
-        equals: paymentIntentID,
-      },
+      and: [
+        {
+          stripePaymentIntentID: {
+            equals: paymentIntentID,
+          },
+        },
+      ],
     }
   }
 
+  if (!typedUser?.id) {
+    return false
+  }
+
   return {
-    orderedBy: {
-      equals: user?.id,
-    },
+    and: [
+      {
+        orderedBy: {
+          equals: typedUser.id,
+        },
+      },
+    ],
   }
 }

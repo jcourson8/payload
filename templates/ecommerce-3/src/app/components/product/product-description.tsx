@@ -1,5 +1,5 @@
 import type { Product } from '@/payload-types'
-import type { InfoType } from 'src/payload/collections/Products/ui/types'
+import type { InfoType } from '@/payload/collections/Products/ui/types'
 
 import RichText from '@/components/RichText'
 import { AddToCart } from '@/components/cart/add-to-cart'
@@ -18,7 +18,7 @@ export function ProductDescription({ product }: { product: Product }) {
   const hasVariants = product.enableVariants && product.variants?.variants?.length
 
   if (hasVariants) {
-    const variantsOrderedByPrice = product.variants.variants.sort((a, b) => {
+    const variantsOrderedByPrice = product.variants!.variants!.sort((a, b) => {
       const aInfo = a.info as InfoType
       const bInfo = b.info as InfoType
       return aInfo.price.amount - bInfo.price.amount
@@ -58,7 +58,23 @@ export function ProductDescription({ product }: { product: Product }) {
       ) : null}
 
       <Suspense fallback={null}>
-        <AddToCart product={product} variants={product.variants.variants} />
+        <AddToCart
+          product={product}
+          variants={
+            product.variants?.variants
+              ?.filter(
+                (variant): variant is typeof variant & { id: string } =>
+                  typeof variant?.id === 'string',
+              )
+              ?.map((variant) => ({
+                id: variant.id,
+                info: variant.info as InfoType,
+                stripeProductID: variant.stripeProductID ?? undefined,
+                stock: variant.stock ?? 0,
+                options: Array.isArray(variant.options) ? variant.options : [],
+              })) ?? []
+          }
+        />
       </Suspense>
     </React.Fragment>
   )

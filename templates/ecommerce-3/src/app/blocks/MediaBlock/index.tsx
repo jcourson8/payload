@@ -29,8 +29,10 @@ export const MediaBlock: React.FC<Props> = (props) => {
     staticImage,
   } = props
 
-  let caption
-  if (media && typeof media === 'object') caption = media.caption
+  let caption: any[] | undefined
+  if (media && typeof media === 'object' && 'caption' in media) {
+    caption = media.caption as any[]
+  }
 
   return (
     <div
@@ -44,11 +46,15 @@ export const MediaBlock: React.FC<Props> = (props) => {
     >
       {position === 'fullscreen' && (
         <div className="relative">
-          <Media resource={media} src={staticImage} />
+          <Media resource={typeof media === 'object' ? media : undefined} src={staticImage} />
         </div>
       )}
       {position === 'default' && (
-        <Media imgClassName={cn('rounded', imgClassName)} resource={media} src={staticImage} />
+        <Media
+          imgClassName={cn('rounded', imgClassName)}
+          resource={typeof media === 'object' ? media : undefined}
+          src={staticImage}
+        />
       )}
       {caption && (
         <div

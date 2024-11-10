@@ -42,11 +42,11 @@ export const CarouselClient: React.FC<{ products: Product[] }> = async ({ produc
             <Link className="relative h-full w-full" href={`/product/${product.slug}`}>
               <GridTileImage
                 label={{
-                  amount: product.price,
-                  currencyCode: product.currency,
-                  title: product.title,
+                  amount: product.price ?? 0,
+                  currencyCode: product.currency ?? 'USD',
+                  title: product.title ?? '',
                 }}
-                media={product.meta.image as Media}
+                media={product.meta?.image as Media}
               />
             </Link>
           </CarouselItem>

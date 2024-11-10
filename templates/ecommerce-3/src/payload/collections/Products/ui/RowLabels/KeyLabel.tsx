@@ -2,16 +2,16 @@
 import { useRowLabel } from '@payloadcms/ui'
 import React, { useEffect, useState } from 'react'
 
-import type { OptionKey } from '../types'
+import type { OptionKey, Option } from '../types'
 
-export const KeyLabel: React.FC = () => {
+const KeyLabel: React.FC = () => {
   const { data, rowNumber } = useRowLabel<OptionKey>()
   const [label, setLabel] = useState(`Key ${rowNumber}`)
 
   useEffect(() => {
     if (data.label) {
       const title = `${data.label}`
-      const values = data?.values?.map((option) => option.label) ?? []
+      const values = data?.values?.map((option: Option) => option.label) ?? []
 
       const label = `${title} (${values.join(', ')})`
       setLabel(label)
@@ -26,3 +26,5 @@ export const KeyLabel: React.FC = () => {
     </div>
   )
 }
+
+export default KeyLabel

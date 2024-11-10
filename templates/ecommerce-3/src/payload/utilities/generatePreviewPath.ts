@@ -1,1 +1,2 @@
-export const generatePreviewPath = ({ path }) => `/next/preview?path=${encodeURIComponent(path)}`
+export const generatePreviewPath = ({ path }: { path: string }) =>
+  `/next/preview?path=${encodeURIComponent(path)}`

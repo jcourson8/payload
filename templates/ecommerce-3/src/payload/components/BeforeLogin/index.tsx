@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const BeforeLogin: React.FC = () => {
+const BeforeLogin: React.FC = () => {
   return (
     <div>
       <p>
@@ -12,3 +12,5 @@ export const BeforeLogin: React.FC = () => {
     </div>
   )
 }
+
+export default BeforeLogin

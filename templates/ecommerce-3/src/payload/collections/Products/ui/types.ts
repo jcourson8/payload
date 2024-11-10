@@ -1,8 +1,15 @@
 import type { Product } from '@/payload-types'
 
-export type OptionKey = Product['variants']['options'][number]
-export type Option = OptionKey['values'][number]
-export type ProductVariant = Product['variants']['variants'][number]
+// Get the non-null types from the Product interface
+type NonNullVariants = NonNullable<Product['variants']>
+export type NonNullOptions = NonNullable<NonNullVariants['options']>
+type NonNullVariantsList = NonNullable<NonNullVariants['variants']>
+
+export type OptionKey = NonNullOptions[number]
+export type Option = NonNullable<OptionKey['values']>[number]
+export type ProductVariant = NonNullVariantsList[number] & {
+  options: string[]
+}
 
 export type KeysFieldValue = {
   options: (Option & { key: OptionKey })[]
@@ -12,7 +19,7 @@ export interface RadioGroupProps {
   /**
    * Required for sorting the array
    */
-  fullArray: Product['variants']['options']
+  fullArray: NonNullOptions
   group: OptionKey
   options: Option[]
   path: string

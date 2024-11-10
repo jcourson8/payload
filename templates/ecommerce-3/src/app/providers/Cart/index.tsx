@@ -40,35 +40,40 @@ const Context = createContext({} as CartContext)
 
 export const useCart = () => useContext(Context)
 
-const arrayHasItems = (array) => Array.isArray(array) && array.length > 0
+const arrayHasItems = (array: CartItem[] | null | undefined): boolean =>
+  Boolean(array && Array.isArray(array) && array.length > 0)
 
 /**
  * ensure that cart items are fully populated, filter out any items that are not
  * this will prevent discontinued products from appearing in the cart
  */
 const flattenCart = (cart: User['cart']): User['cart'] => ({
-  ...cart,
-  items: cart.items
-    .map((item) => {
+  ...cart!,
+  items: cart?.items
+    ?.map((item) => {
       if (!item?.product) {
         return null
       }
 
       let stripeProductID
 
-      if (typeof item.product !== 'string') {
-        if (item.variant) {
-          const variant = item.product.variants.variants.find((v) => v.id === item.variant)
+      if (typeof item.product !== 'string' && typeof item.product !== 'number') {
+        if (item.variant && 'variants' in item.product) {
+          const variant = item.product.variants?.variants?.find((v) => v.id === item.variant)
           if (variant?.stripeProductID) stripeProductID = variant.stripeProductID
         }
-        if (item.product.stripeProductID) stripeProductID = item.product.stripeProductID
+        if ('stripeProductID' in item.product) stripeProductID = item.product.stripeProductID
       }
 
       return {
         ...item,
-        // flatten relationship to product
-        product: typeof item.product === 'string' ? item.product : item.product.id,
-        quantity: typeof item?.quantity === 'number' ? item?.quantity : 0,
+        product:
+          typeof item.product === 'string'
+            ? item.product
+            : typeof item.product === 'number'
+              ? item.product
+              : item.product.id,
+        quantity: typeof item?.quantity === 'number' ? item.quantity : 0,
         stripeProductID,
         variant: item?.variant,
       }
@@ -83,7 +88,7 @@ const flattenCart = (cart: User['cart']): User['cart'] => ({
 // Step 4B: Sync the cart to Payload and clear local storage
 // Step 5: If the user is logged out, sync the cart to local storage only
 
-export const CartProvider = (props) => {
+export const CartProvider = (props: { children: React.ReactNode }) => {
   // const { setTimedNotification } = useNotifications();
   const { children } = props
   const { status: authStatus, user } = useAuth()
@@ -162,7 +167,7 @@ export const CartProvider = (props) => {
   // upon logging in, merge and sync the existing local cart to Payload
   useEffect(() => {
     // wait until we have attempted authentication (the user is either an object or `null`)
-    if (!hasInitialized.current || user === undefined || !cart.items) return
+    if (!hasInitialized.current || user === undefined || !cart?.items) return
 
     const flattenedCart = flattenCart(cart)
 
@@ -206,19 +211,20 @@ export const CartProvider = (props) => {
   const isProductInCart = useCallback(
     (incomingProduct: Product, variantId?: string): boolean => {
       let isInCart = false
-      const { items: itemsInCart } = cart || {}
+      const { items: itemsInCart } = cart || { items: [] }
       if (Array.isArray(itemsInCart) && itemsInCart.length > 0) {
         isInCart = Boolean(
           itemsInCart.find(({ product, variant }) => {
-            // Check for variant first
             if (variantId) {
               return variant === variantId
             } else {
               return typeof product === 'string'
                 ? product === incomingProduct.id
-                : product?.id === incomingProduct.id
+                : typeof product === 'number'
+                  ? product === incomingProduct.id
+                  : product?.id === incomingProduct.id
             }
-          }), // eslint-disable-line function-paren-newline
+          }),
         )
       }
       return isInCart
@@ -267,17 +273,22 @@ export const CartProvider = (props) => {
 
     const newTotal =
       cart?.items?.reduce((acc, item) => {
-        if (typeof item.product === 'string') return acc
-        const itemInfo = item.variant
-          ? (item.product.variants.variants.find((v) => v.id === item.variant)?.info as InfoType)
-          : (item.product.info as InfoType)
+        if (!item?.product || typeof item.product === 'string' || typeof item.product === 'number')
+          return acc
 
-        const itemCost = itemInfo.price.amount * item.quantity
+        const itemInfo =
+          item.variant && 'variants' in item.product
+            ? item.product.variants?.variants?.find((v) => v.id === item.variant)?.info
+            : item.product.info
+
+        if (!itemInfo || typeof itemInfo !== 'object' || !('price' in itemInfo)) return acc
+
+        const itemCost = (itemInfo.price as { amount: number }).amount * (item.quantity || 0)
         return acc + (itemCost || 0)
       }, 0) || 0
 
     const newQuantity =
-      cart?.items?.reduce((quantity, product) => product.quantity + quantity, 0) || 0
+      cart?.items?.reduce((quantity, item) => (item?.quantity || 0) + quantity, 0) || 0
 
     setTotal({
       amount: newTotal,
@@ -303,7 +314,7 @@ export const CartProvider = (props) => {
         isProductInCart,
       }}
     >
-      {children && children}
+      {children}
     </Context.Provider>
   )
 }

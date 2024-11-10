@@ -16,7 +16,20 @@ export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richTex
             {links.map(({ link }, i) => {
               return (
                 <li key={i}>
-                  <CMSLink {...link} />
+                  <CMSLink
+                    {...link}
+                    newTab={link?.newTab ?? undefined}
+                    url={link?.url ?? undefined}
+                    type={link?.type ?? undefined}
+                    reference={
+                      link?.reference
+                        ? {
+                            relationTo: link.reference.relationTo,
+                            value: String(link.reference.value),
+                          }
+                        : undefined
+                    }
+                  />
                 </li>
               )
             })}
@@ -24,7 +37,7 @@ export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richTex
         )}
       </div>
       <div className="container ">
-        {typeof media === 'object' && (
+        {typeof media === 'object' && media !== null && (
           <div>
             <Media
               className="-mx-4 md:-mx-8 2xl:-mx-16"

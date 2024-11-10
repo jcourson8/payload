@@ -6,7 +6,6 @@ import { adminsOrOrderedByOrPaymentId } from './access/adminsOrOrderedByOrPaymen
 import { clearUserCart } from './hooks/clearUserCart'
 import { populateOrderedBy } from './hooks/populateOrderedBy'
 import { updateUserOrders } from './hooks/updateUserOrders'
-import { LinkToPaymentIntent } from './ui/LinkToPaymentIntent'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -34,9 +33,9 @@ export const Orders: CollectionConfig = {
       name: 'stripePaymentIntentID',
       type: 'text',
       admin: {
-        /* components: {
-          Field: LinkToPaymentIntent,
-        }, */
+        components: {
+          Field: '@/payload/collections/Orders/ui/LinkToPaymentIntent',
+        },
         position: 'sidebar',
       },
       label: 'Stripe Payment Intent ID',

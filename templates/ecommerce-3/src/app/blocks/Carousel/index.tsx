@@ -22,15 +22,15 @@ export const CarouselBlock: React.FC<
 
     const flattenedCategories = categories?.length
       ? categories.map((category) => {
-          if (typeof category === 'string') return category
-          else return category.id
+          if (typeof category === 'object' && category !== null) return category.id
+          return category
         })
       : null
 
     const fetchedProducts = await payload.find({
       collection: 'products',
       depth: 1,
-      limit,
+      limit: limit || undefined,
       ...(flattenedCategories && flattenedCategories.length > 0
         ? {
             where: {
@@ -44,9 +44,12 @@ export const CarouselBlock: React.FC<
 
     products = fetchedProducts.docs
   } else {
-    products = selectedDocs.map((post) => {
-      if (typeof post.value !== 'string') return post.value
-    })
+    products = (selectedDocs ?? [])
+      .map((post) => {
+        if (typeof post.value === 'object') return post.value as Product
+        return null
+      })
+      .filter((product): product is Product => product !== null)
   }
 
   if (!products?.length) return null

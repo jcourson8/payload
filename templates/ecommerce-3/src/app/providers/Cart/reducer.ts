@@ -1,6 +1,7 @@
 import type { CartItems, Product, User } from '@/payload-types'
 
-export type CartItem = CartItems[0]
+// Define a non-null cart item type
+export type CartItem = NonNullable<NonNullable<CartItems>[number]>
 
 type CartType = User['cart']
 
@@ -75,18 +76,25 @@ export const cartReducer = (cart: CartType, action: CartAction): CartType => {
     }
 
     case 'ADD_ITEM': {
-      // if the item is already in the cart, increase the quantity
       const { payload: incomingItem } = action
       const productId =
-        typeof incomingItem.product === 'string' ? incomingItem.product : incomingItem?.product?.id
+        typeof incomingItem.product === 'string'
+          ? incomingItem.product
+          : typeof incomingItem.product === 'number'
+            ? incomingItem.product
+            : incomingItem.product?.id
 
       const indexInCart = cart?.items?.findIndex(({ product, variant }) => {
         if (incomingItem.variant) {
           return variant === incomingItem.variant
         } else {
-          return typeof product === 'string' ? product === productId : product?.id === productId
+          return typeof product === 'string'
+            ? product === productId
+            : typeof product === 'number'
+              ? product === productId
+              : product?.id === productId
         }
-      }) // eslint-disable-line function-paren-newline
+      })
 
       const withAddedItem = [...(cart?.items || [])]
 
@@ -99,8 +107,8 @@ export const cartReducer = (cart: CartType, action: CartAction): CartType => {
           ...withAddedItem[indexInCart],
           quantity:
             (incomingItem.quantity || 0) > 0
-              ? (withAddedItem[indexInCart].quantity || 0) + incomingItem.quantity
-              : undefined,
+              ? (withAddedItem[indexInCart].quantity || 0) + (incomingItem.quantity || 0)
+              : 0,
         }
       }
 
@@ -111,14 +119,13 @@ export const cartReducer = (cart: CartType, action: CartAction): CartType => {
     }
 
     case 'INCREMENT_QUANTITY': {
-      // if the item is already in the cart, increase the quantity
       const { payload: itemId } = action
 
       const incrementedItems = cart?.items?.map((item) => {
         if (item.id === itemId) {
           return {
             ...item,
-            quantity: item.quantity + 1,
+            quantity: (item.quantity || 0) + 1,
           }
         }
         return item
@@ -126,18 +133,17 @@ export const cartReducer = (cart: CartType, action: CartAction): CartType => {
 
       return {
         ...cart,
-        items: incrementedItems,
+        items: incrementedItems || [],
       }
     }
 
     case 'DECREMENT_QUANTITY': {
-      // if the item is already in the cart, decrease the quantity
       const { payload: itemId } = action
 
-      const incrementedItems = cart?.items?.reduce((items, item) => {
+      const decrementedItems = cart?.items?.reduce<CartItem[]>((items, item) => {
         if (item.id === itemId) {
           // Decrement the item if it has more than 1
-          if (item.quantity > 1) {
+          if (item.quantity && item.quantity > 1) {
             return [
               ...items,
               {
@@ -155,7 +161,7 @@ export const cartReducer = (cart: CartType, action: CartAction): CartType => {
 
       return {
         ...cart,
-        items: incrementedItems,
+        items: decrementedItems || [],
       }
     }
 

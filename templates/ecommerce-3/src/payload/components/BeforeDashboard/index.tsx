@@ -6,7 +6,7 @@ import './index.scss'
 
 const baseClass = 'before-dashboard'
 
-export const BeforeDashboard: React.FC = () => {
+const BeforeDashboard: React.FC = () => {
   return (
     <div className={baseClass}>
       <Banner className={`${baseClass}__banner`} type="success">
@@ -94,3 +94,5 @@ export const BeforeDashboard: React.FC = () => {
     </div>
   )
 }
+
+export default BeforeDashboard

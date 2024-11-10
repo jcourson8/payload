@@ -11,8 +11,13 @@ export const getMeUser = async (args?: {
   user: User
 }> => {
   const { nullUserRedirect, validUserRedirect } = args || {}
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get('payload-token')?.value
+
+  if (!token) {
+    if (nullUserRedirect) redirect(nullUserRedirect)
+    throw new Error('No authentication token found')
+  }
 
   const meUserReq = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/me`, {
     headers: {

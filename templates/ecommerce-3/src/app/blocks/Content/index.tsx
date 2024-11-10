@@ -32,13 +32,29 @@ export const ContentBlock: React.FC<
 
             return (
               <div
-                className={cn(`col-span-4 lg:col-span-${colsSpanClasses[size]}`, {
+                className={cn(`col-span-4 lg:col-span-${colsSpanClasses[size ?? 'full']}`, {
                   'md:col-span-2': size !== 'full',
                 })}
                 key={index}
               >
                 <RichText content={richText} enableGutter={false} />
-                {enableLink && <CMSLink className="classes.link" {...link} />}
+                {enableLink && link && (
+                  <CMSLink
+                    className="classes.link"
+                    {...link}
+                    newTab={link.newTab ?? undefined}
+                    url={link.url ?? undefined}
+                    type={link.type ?? undefined}
+                    reference={
+                      link.reference
+                        ? {
+                            relationTo: link.reference.relationTo,
+                            value: String(link.reference.value),
+                          }
+                        : undefined
+                    }
+                  />
+                )}
               </div>
             )
           })}

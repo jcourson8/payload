@@ -1,4 +1,4 @@
-import type { User } from '@/payload-types'
+import type { CartItems, User } from '@/payload-types'
 import type { StripeWebhookHandler } from '@payloadcms/plugin-stripe/types'
 import type Stripe from 'stripe'
 
@@ -54,15 +54,16 @@ export const paymentSucceeded: StripeWebhookHandler<{
       data: {
         ...(user && { orderedBy: user.id }),
         currency,
-        items: cart?.map((item) => {
-          const { product: productID, quantity, variant } = item
+        items:
+          cart?.map((item: NonNullable<CartItems>[number]) => {
+            const { product: productID, quantity, variant } = item
 
-          return {
-            product: productID,
-            quantity,
-            variant,
-          }
-        }),
+            return {
+              product: productID,
+              quantity,
+              variant,
+            }
+          }) || [],
         stripePaymentIntentID,
         total: amount,
       },

@@ -7,7 +7,7 @@ import { useFormFields } from '@payloadcms/ui'
 //import CopyToClipboard from 'payload/dist/admin/components/elements/CopyToClipboard'
 import * as React from 'react'
 
-export const LinkToPaymentIntent: React.FC<TextField> = (props) => {
+const LinkToPaymentIntent: React.FC<TextField> = (props) => {
   const { name, label } = props
 
   const { value: stripePaymentIntentID } = useFormFields(([fields]) => fields[name]) || {}
@@ -57,3 +57,5 @@ export const LinkToPaymentIntent: React.FC<TextField> = (props) => {
     </div>
   )
 }
+
+export default LinkToPaymentIntent

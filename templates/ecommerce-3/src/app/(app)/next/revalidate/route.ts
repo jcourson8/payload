@@ -24,12 +24,12 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   if (type === 'path') {
-    revalidatePath(path)
+    revalidatePath(path as string)
     return NextResponse.json({ now: Date.now(), revalidated: true })
   }
 
-  if (type === 'tag') {
-    revalidateTag(tag)
+  if (type === 'tag' && tag) {
+    revalidateTag(tag as string)
     return NextResponse.json({ now: Date.now(), revalidated: true })
   }
 

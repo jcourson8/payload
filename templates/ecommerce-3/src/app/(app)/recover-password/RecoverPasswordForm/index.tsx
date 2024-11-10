@@ -60,13 +60,7 @@ export const RecoverPasswordForm: React.FC = () => {
             <Message className="mb-8" error={error} />
             <div className="mb-8">
               <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                {...register('email', { required: true })}
-                required
-                type="email"
-              />
+              <Input id="email" {...register('email', { required: true })} required type="email" />
             </div>
             <Button type="submit" variant="default">
               Recover Password

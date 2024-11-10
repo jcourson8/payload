@@ -8,7 +8,7 @@ import { CallToActionBlock } from '@/blocks/CallToAction'
 import { ContentBlock } from '@/blocks/Content'
 import { MediaBlock } from '@/blocks/MediaBlock'
 import { cn } from '@/utilities/cn'
-import React, { Fragment } from 'react'
+import React, { Fragment, JSX } from 'react'
 import { CMSLink } from 'src/app/components/Link'
 
 import {

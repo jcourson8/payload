@@ -65,7 +65,7 @@ export default async function Orders() {
                   <p className="mb-4 opacity-75">
                     <time dateTime={order.createdAt}>{formatDateTime(order.createdAt)}</time>
                   </p>
-                  {order.items.length && (
+                  {order.items?.length && (
                     <p className="mb-4">
                       {order.items.length} {order.items.length > 1 ? 'items' : 'item'}
                     </p>

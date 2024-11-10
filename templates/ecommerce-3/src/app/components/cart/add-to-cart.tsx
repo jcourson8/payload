@@ -9,7 +9,13 @@ import { PlusIcon } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import React, { useMemo } from 'react'
 
-type ProductVariant = Product['variants']['variants'][number]
+type ProductVariant = {
+  id: string
+  info: InfoType
+  stripeProductID?: string | null
+  stock: number
+  options: string[]
+}
 
 type BaseProps = {
   product: Product
@@ -21,13 +27,13 @@ type PropsWithVariants = {
 }
 
 type PropsWithInfo = {
-  info: Product['variants']['variants'][0]['info']
+  info: InfoType
   variants?: never
 }
 
 type Props = BaseProps & (PropsWithInfo | PropsWithVariants)
 
-export function AddToCart({ product, variants }: Props) {
+export function AddToCart({ product, variants = [] }: Props) {
   const { addItemToCart, cart } = useCart()
   const searchParams = useSearchParams()
 

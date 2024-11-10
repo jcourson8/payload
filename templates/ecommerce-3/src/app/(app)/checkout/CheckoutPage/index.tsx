@@ -196,28 +196,25 @@ export const CheckoutPage: React.FC = () => {
       {!cartIsEmpty && (
         <div className="max-w-md w-full">
           {cart?.items?.map((item, index) => {
-            if (typeof item.product === 'object') {
-              const {
-                product,
-                product: { id, meta, title },
-                quantity,
-                variant: variantId,
-              } = item
+            if (typeof item.product === 'object' && item.product !== null) {
+              const { product, quantity, variant: variantId } = item
 
-              let stripeProductID
+              if (!product.id || !product.title) return null
 
-              if (variantId) {
+              let stripeProductID: string | undefined
+
+              if (variantId && product.variants?.variants) {
                 const variant = product.variants.variants.find((v) => v.id === variantId)
-                stripeProductID = variant.stripeProductID
+                stripeProductID = variant?.stripeProductID || undefined
               } else {
-                stripeProductID = product.stripeProductID
+                stripeProductID = product.stripeProductID || undefined
               }
 
               if (!quantity) return null
 
               const isLast = index === (cart?.items?.length || 0) - 1
-
-              const metaImage = meta?.image
+              const metaImage =
+                typeof product.meta?.image === 'object' ? product.meta.image : undefined
 
               return (
                 <Fragment key={index}>
@@ -233,16 +230,15 @@ export const CheckoutPage: React.FC = () => {
                         <p className="classes.warning">
                           {'This product is not yet connected to Stripe. To link this product, '}
                           <Link
-                            href={`${process.env.NEXT_PUBLIC_SERVER_URL}/admin/collections/products/${id}`}
+                            href={`${process.env.NEXT_PUBLIC_SERVER_URL}/admin/collections/products/${product.id}`}
                           >
                             edit this product in the admin panel
                           </Link>
                           .
                         </p>
                       )}
-                      <h6 className="">{title}</h6>
-
-                      <Price amount={product.price} currencyCode="usd" />
+                      <h6 className="">{product.title}</h6>
+                      <Price amount={product.price || 0} currencyCode="usd" />
                     </div>
                   </div>
                   {!isLast && <hr />}

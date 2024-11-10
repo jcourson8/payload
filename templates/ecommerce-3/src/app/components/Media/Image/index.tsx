@@ -43,8 +43,8 @@ export const Image: React.FC<MediaProps> = (props) => {
       width: fullWidth,
     } = resource
 
-    width = widthFromProps ?? fullWidth
-    height = heightFromProps ?? fullHeight
+    width = widthFromProps ?? (fullWidth || undefined)
+    height = heightFromProps ?? (fullHeight || undefined)
     alt = altFromResource
 
     const filename = fullFilename

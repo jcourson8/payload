@@ -1,4 +1,4 @@
-import type { Product } from 'src/payload-types'
+import type { Product } from '@/payload-types'
 
 import configPromise from '@payload-config'
 import { getPayloadHMR } from '@payloadcms/next/utilities'
@@ -23,15 +23,15 @@ export const ArchiveBlock: React.FC<
 
     const flattenedCategories = categories?.length
       ? categories.map((category) => {
-          if (typeof category === 'string') return category
-          else return category.id
+          if (typeof category === 'object' && category !== null) return category.id
+          return category
         })
       : null
 
     const fetchedProducts = await payload.find({
       collection: 'products',
       depth: 1,
-      limit,
+      limit: limit || undefined,
       ...(flattenedCategories && flattenedCategories.length > 0
         ? {
             where: {
@@ -44,10 +44,10 @@ export const ArchiveBlock: React.FC<
     })
 
     products = fetchedProducts.docs
-  } else {
-    products = selectedDocs.map((post) => {
-      if (typeof post.value !== 'string') return post.value
-    })
+  } else if (selectedDocs) {
+    products = selectedDocs
+      .map((post) => (typeof post.value === 'object' ? (post.value as Product) : null))
+      .filter((product): product is Product => product !== null)
   }
 
   return (

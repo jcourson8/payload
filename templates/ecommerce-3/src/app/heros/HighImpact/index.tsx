@@ -25,7 +25,20 @@ export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText 
               {links.map(({ link }, i) => {
                 return (
                   <li key={i}>
-                    <CMSLink {...link} />
+                    <CMSLink
+                      {...link}
+                      newTab={link?.newTab ?? undefined}
+                      url={link?.url ?? undefined}
+                      type={link?.type ?? undefined}
+                      reference={
+                        link?.reference
+                          ? {
+                              relationTo: link.reference.relationTo,
+                              value: String(link.reference.value),
+                            }
+                          : undefined
+                      }
+                    />
                   </li>
                 )
               })}
@@ -34,7 +47,7 @@ export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText 
         </div>
       </div>
       <div className="min-h-[80vh] select-none">
-        {typeof media === 'object' && (
+        {typeof media === 'object' && media !== null && (
           <React.Fragment>
             <Media fill imgClassName="-z-10 object-cover" priority resource={media} />
             <div className="absolute pointer-events-none left-0 bottom-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent" />

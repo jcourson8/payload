@@ -1,7 +1,7 @@
 'use client'
 
 import { Message } from '@/components/Message'
-import { Button } from '@/components/ui/button'
+import { Button, ButtonProps } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/providers/Auth'
@@ -80,8 +80,8 @@ const AccountForm: React.FC = () => {
     // Once user is loaded, reset form to have default values
     if (user) {
       reset({
-        name: user.name,
-        email: user.email,
+        name: user.name ?? '',
+        email: user.email ?? '',
         password: '',
         passwordConfirm: '',
       })
@@ -109,23 +109,11 @@ const AccountForm: React.FC = () => {
           </div>
           <div className="mb-4">
             <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              name="email"
-              {...register('email', { required: true })}
-              required
-              type="email"
-            />
+            <Input id="email" {...register('email', { required: true })} required type="email" />
           </div>
           <div className="mb-8">
             <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              {...register('name', { required: true })}
-              required
-              type="text"
-            />
+            <Input id="name" {...register('name', { required: true })} required type="text" />
           </div>
         </Fragment>
       ) : (
@@ -148,7 +136,6 @@ const AccountForm: React.FC = () => {
             <Label htmlFor="password">New password</Label>
             <Input
               id="password"
-              name="password"
               {...register('password', { required: true })}
               required
               type="password"
@@ -159,7 +146,6 @@ const AccountForm: React.FC = () => {
             <Label htmlFor="passwordConfirm">Confirm password</Label>
             <Input
               id="passwordConfirm"
-              name="passwordConfirm"
               {...register('passwordConfirm', {
                 required: true,
                 validate: (value) => value === password.current || 'The passwords do not match',

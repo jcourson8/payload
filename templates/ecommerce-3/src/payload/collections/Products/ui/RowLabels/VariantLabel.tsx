@@ -12,7 +12,7 @@ type RowData = {
   stripeProductID: string
 }
 
-export const VariantLabel: React.FC = () => {
+const VariantLabel: React.FC = () => {
   const { data, rowNumber } = useRowLabel<RowData>()
   const [label, setLabel] = useState(`Variant ${rowNumber}`)
 
@@ -20,7 +20,7 @@ export const VariantLabel: React.FC = () => {
     if (data?.info) {
       const info = data.info
 
-      const labels = []
+      const labels: string[] = []
 
       info.options.forEach((option) => {
         labels.push(option.label)
@@ -38,3 +38,5 @@ export const VariantLabel: React.FC = () => {
     </div>
   )
 }
+
+export default VariantLabel

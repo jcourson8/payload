@@ -21,12 +21,12 @@ function ThreeItemGridItem({
       <Link className="relative block aspect-square h-full w-full" href={`/product/${item.slug}`}>
         <GridTileImage
           label={{
-            amount: item.price,
-            currencyCode: item.currency,
+            amount: item.price ?? 0,
+            currencyCode: item.currency ?? 'USD',
             position: size === 'full' ? 'center' : 'bottom',
             title: item.title,
           }}
-          media={item.meta.image as Media}
+          media={item.meta?.image as Media}
         />
       </Link>
     </div>

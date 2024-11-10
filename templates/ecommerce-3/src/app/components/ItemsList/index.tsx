@@ -10,29 +10,63 @@ interface Props {
   items: CartItems
 }
 
+// Add type for variant
+interface Variant {
+  id: string
+  info?: InfoType
+  images?: Array<{
+    image?: Media | null
+  }>
+}
+
+interface Media {
+  alt?: string
+  url: string
+}
+
+// Helper function to type guard Media objects
+function isMedia(value: any): value is Media {
+  return value && typeof value === 'object' && typeof value.url === 'string'
+}
+
 export const ItemsList: React.FC<Props> = ({ items }) => {
   return (
     <ul className="flex-grow overflow-auto py-4">
       {items?.map((item, i) => {
-        if (typeof item.product === 'string' || !item) return <React.Fragment key={item.id} />
+        if (
+          typeof item.product === 'string' ||
+          !item ||
+          !item.product ||
+          typeof item.product === 'number'
+        ) {
+          return <React.Fragment key={item.id} />
+        }
 
         const product = item.product
-        let image = typeof product.meta.image !== 'string' ? product.meta.image : undefined
+        let image: Media | undefined
+
+        // Safely type narrow the image
+        const metaImage = product?.meta?.image
+        if (isMedia(metaImage)) {
+          image = metaImage
+        }
 
         const isVariant = Boolean(item.variant)
-        const variant = item.product.variants.variants.length
-          ? item.product.variants.variants.find((v) => v.id === item.variant)
+        // Type assertion for variants array
+        const variant = product?.variants?.variants?.length
+          ? (product.variants.variants as Variant[]).find((v) => v.id === item.variant)
           : undefined
 
-        const info = isVariant ? (variant.info as InfoType) : (product.info as InfoType)
+        const info = isVariant ? (variant?.info as InfoType) : (product?.info as InfoType)
 
-        if (isVariant) {
-          if (variant.images?.[0]?.image && typeof variant.images?.[0]?.image !== 'string') {
-            image = variant.images[0].image
+        if (isVariant && variant) {
+          const variantImage = variant.images?.[0]?.image
+          if (isMedia(variantImage)) {
+            image = variantImage
           }
         }
 
-        const url = `/product/${product.slug}${isVariant ? `?variant=${item.variant}` : ''}`
+        const url = `/product/${product?.slug}${isVariant ? `?variant=${item.variant}` : ''}`
 
         return (
           <li
@@ -43,10 +77,10 @@ export const ItemsList: React.FC<Props> = ({ items }) => {
               <Link className="z-30 flex flex-row space-x-4" href={url}>
                 <div className="relative h-16 w-16 cursor-pointer overflow-hidden rounded-md border border-neutral-300 bg-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800">
                   <Image
-                    alt={image.alt || product.title}
+                    alt={image?.alt || product.title}
                     className="h-full w-full object-cover"
                     height={64}
-                    src={image.url}
+                    src={image?.url || ''}
                     width={64}
                   />
                 </div>

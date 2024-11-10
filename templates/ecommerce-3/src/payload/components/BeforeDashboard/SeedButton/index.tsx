@@ -4,10 +4,10 @@ import React, { Fragment, useCallback, useState } from 'react'
 export const SeedButton: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [seeded, setSeeded] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<Error | null>(null)
 
   const handleClick = useCallback(
-    async (e) => {
+    async (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault()
       if (loading || seeded) return
 
@@ -18,7 +18,7 @@ export const SeedButton: React.FC = () => {
           await fetch('/api/seed')
           setSeeded(true)
         } catch (err) {
-          setError(err)
+          setError(err as Error)
         }
       }, 1000)
     },

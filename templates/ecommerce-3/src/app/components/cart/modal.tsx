@@ -21,13 +21,14 @@ import React, { useEffect, useRef, useState } from 'react'
 import { DeleteItemButton } from './delete-item-button'
 import { EditItemQuantityButton } from './edit-item-quantity-button'
 import OpenCart from './open-cart'
+import { Media } from '@/payload-types'
 
 export default function CartModal() {
   const { cart, cartQuantity, cartTotal } = useCart()
   const [isOpen, setIsOpen] = useState(false)
   const quantityRef = useRef(
     cart?.items?.length
-      ? cart.items.reduce((quantity, product) => product.quantity + quantity, 0)
+      ? cart.items.reduce((quantity, product) => (product?.quantity ?? 0) + quantity, 0)
       : 0,
   )
   const pathname = usePathname()
@@ -73,27 +74,40 @@ export default function CartModal() {
             <div className="flex flex-col justify-between w-full">
               <ul className="flex-grow overflow-auto py-4">
                 {cart?.items?.map((item, i) => {
-                  if (typeof item.product === 'string' || !item || !item.url)
+                  if (
+                    typeof item.product === 'string' ||
+                    !item ||
+                    !item.url ||
+                    typeof item.product === 'number'
+                  )
                     return <React.Fragment key={i} />
 
                   const product = item.product
-                  let image =
-                    typeof product.meta.image !== 'string' ? product.meta.image : undefined
+                  let image: Media | undefined = undefined
+                  if (
+                    product?.meta?.image &&
+                    typeof product.meta.image !== 'string' &&
+                    typeof product.meta.image !== 'number' &&
+                    'url' in product.meta.image
+                  ) {
+                    image = product.meta.image as Media
+                  }
 
                   const isVariant = Boolean(item.variant)
-                  const variant = item.product.variants.variants.length
-                    ? item.product.variants.variants.find((v) => v.id === item.variant)
+                  const variant = product?.variants?.variants?.length
+                    ? product.variants.variants.find((v: any) => v.id === item.variant)
                     : undefined
 
-                  const info = isVariant ? (variant.info as InfoType) : (product.info as InfoType)
+                  const info = isVariant ? (variant?.info as InfoType) : (product?.info as InfoType)
 
-                  if (isVariant) {
-                    if (
-                      variant.images?.[0]?.image &&
-                      typeof variant.images?.[0]?.image !== 'string'
-                    ) {
-                      image = variant.images[0].image
-                    }
+                  if (
+                    isVariant &&
+                    variant?.images?.[0]?.image &&
+                    typeof variant.images[0].image !== 'string' &&
+                    typeof variant.images[0].image !== 'number' &&
+                    'url' in variant.images[0].image
+                  ) {
+                    image = variant.images[0].image as Media
                   }
 
                   return (
@@ -108,17 +122,21 @@ export default function CartModal() {
                         <Link className="z-30 flex flex-row space-x-4" href={item.url}>
                           <div className="relative h-16 w-16 cursor-pointer overflow-hidden rounded-md border border-neutral-300 bg-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800">
                             <Image
-                              alt={image.alt || product.title}
+                              alt={
+                                (image && 'alt' in image ? image.alt : undefined) ||
+                                (product && 'title' in product ? product.title : undefined) ||
+                                'Product image'
+                              }
                               className="h-full w-full object-cover"
                               height={64}
-                              src={image.url}
+                              src={image?.url || ''}
                               width={64}
                             />
                           </div>
 
                           <div className="flex flex-1 flex-col text-base">
-                            <span className="leading-tight">{product.title}</span>
-                            {isVariant && info.options?.length ? (
+                            <span className="leading-tight">{product?.title}</span>
+                            {isVariant && info?.options?.length ? (
                               <p className="text-sm text-neutral-500 dark:text-neutral-400">
                                 {info.options
                                   ?.map((option) => {

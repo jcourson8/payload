@@ -1,6 +1,6 @@
 import type { CollectionAfterDeleteHook } from 'payload'
 
-import type { Product } from '../../../../payload-types'
+import type { Product } from '@/payload-types'
 
 export const deleteProductFromCarts: CollectionAfterDeleteHook<Product> = async ({ id, req }) => {
   const usersWithProductInCart = await req.payload.find({
@@ -17,6 +17,7 @@ export const deleteProductFromCarts: CollectionAfterDeleteHook<Product> = async 
     await Promise.all(
       usersWithProductInCart.docs.map(async (user) => {
         const cart = user.cart
+        if (!cart || !cart.items) return // Skip if no cart exists
         const itemsWithoutProduct = cart.items.filter((item) => item.product !== id)
         const cartWithoutProduct = {
           ...cart,

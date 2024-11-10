@@ -8,7 +8,7 @@ import React, { Suspense } from 'react'
 import MobileMenu from './mobile-menu'
 import Search, { SearchSkeleton } from './search'
 const { SITE_NAME } = process.env
-import type { Header } from 'src/payload-types'
+import type { Header } from '@/payload-types'
 
 import AccountDrawer from '@/components/AccountDrawer'
 import { getCachedGlobal } from '@/utilities/getGlobals'
@@ -36,7 +36,21 @@ export async function Header() {
             <ul className="hidden gap-6 text-sm md:flex md:items-center">
               {menu.map((item) => (
                 <li key={item.id}>
-                  <CMSLink {...item.link} appearance="link" />
+                  <CMSLink
+                    appearance="link"
+                    {...item.link}
+                    newTab={item.link?.newTab ?? undefined}
+                    url={item.link?.url ?? undefined}
+                    type={item.link?.type ?? undefined}
+                    reference={
+                      item.link?.reference
+                        ? {
+                            relationTo: item.link.reference.relationTo,
+                            value: String(item.link.reference.value),
+                          }
+                        : undefined
+                    }
+                  />
                 </li>
               ))}
             </ul>

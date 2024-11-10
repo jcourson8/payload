@@ -9,15 +9,19 @@ export const generateMeta = async (args: { doc: Page | Product }): Promise<Metad
   const { doc } = args || {}
 
   const ogImage =
-    typeof doc?.meta?.image === 'object' &&
+    'meta' in doc &&
+    typeof doc.meta?.image === 'object' &&
     doc.meta.image !== null &&
     'url' in doc.meta.image &&
     `${process.env.NEXT_PUBLIC_SERVER_URL}${doc.meta.image.url}`
 
+  const title = doc.title
+  const description = undefined
+
   return {
-    description: doc?.meta?.description,
+    description,
     openGraph: mergeOpenGraph({
-      description: doc?.meta?.description,
+      description,
       images: ogImage
         ? [
             {
@@ -25,9 +29,9 @@ export const generateMeta = async (args: { doc: Page | Product }): Promise<Metad
             },
           ]
         : undefined,
-      title: doc?.meta?.title || 'Payload',
+      title: title || 'Payload',
       url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
-    title: doc?.meta?.title || 'Payload',
+    title: title || 'Payload',
   }
 }

@@ -81,20 +81,13 @@ const CreateAccountForm: React.FC = () => {
 
       <div className="mb-4">
         <Label htmlFor="email">Email Address</Label>
-        <Input
-          id="email"
-          name="email"
-          {...register('email', { required: true })}
-          required
-          type="email"
-        />
+        <Input id="email" {...register('email', { required: true })} required type="email" />
       </div>
 
       <div className="mb-4">
         <Label htmlFor="password">New password</Label>
         <Input
           id="password"
-          name="password"
           {...register('password', { required: true })}
           required
           type="password"
@@ -105,7 +98,6 @@ const CreateAccountForm: React.FC = () => {
         <Label htmlFor="passwordConfirm">Confirm Password</Label>
         <Input
           id="passwordConfirm"
-          name="passwordConfirm"
           {...register('passwordConfirm', {
             required: true,
             validate: (value) => value === password.current || 'The passwords do not match',

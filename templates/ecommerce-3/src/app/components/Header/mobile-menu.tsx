@@ -66,11 +66,25 @@ export default function MobileMenu({ menu }: Props) {
               <Search />
             </Suspense>
           </div>
-          {menu.length ? (
+          {menu?.length ? (
             <ul className="flex w-full flex-col">
               {menu.map((item) => (
                 <li className="py-2" key={item.id}>
-                  <CMSLink {...item.link} appearance="link" />
+                  <CMSLink
+                    appearance="link"
+                    {...item.link}
+                    newTab={item.link?.newTab ?? undefined}
+                    url={item.link?.url ?? undefined}
+                    type={item.link?.type ?? undefined}
+                    reference={
+                      item.link?.reference
+                        ? {
+                            relationTo: item.link.reference.relationTo,
+                            value: String(item.link.reference.value),
+                          }
+                        : undefined
+                    }
+                  />
                 </li>
               ))}
             </ul>

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Product } from '@/payload-types'
-import type { InfoType } from 'src/payload/collections/Products/ui/types'
+import type { InfoType } from '@/payload/collections/Products/ui/types'
 
 import { createUrl } from '@/lib/utils'
 import clsx from 'clsx'
@@ -18,32 +18,40 @@ export function VariantSelector({ product }: { product: Product }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const variants = product.variants.variants
-  const variantKeys = product.variants.keys
+  const variants = product.variants?.variants ?? []
+  const variantKeys = product.variants?.options ?? []
   const hasVariants = product.enableVariants && variants.length > 0 && variantKeys.length > 0
 
   if (!hasVariants) {
     return null
   }
 
-  const combinations: Combination[] = variants.map((variant) => {
-    const info = variant.info as InfoType
-    return {
-      id: variant.id,
-      availableForSale: variant.stock > 0 && Boolean(variant.stripeProductID),
-      // Adds key / value pairs for each variant (ie. "color": "Black" and "size": 'M").
-      ...info.options.reduce(
-        (accumulator, option) => ({
-          ...accumulator,
-          [option.key.slug]: option.slug,
-        }),
-        {},
-      ),
-    }
-  })
+  const combinations: Combination[] = variants
+    .filter(
+      (variant): variant is typeof variant & { id: string } => typeof variant?.id === 'string',
+    )
+    .map((variant) => {
+      const info = variant.info as InfoType
+      return {
+        id: variant.id,
+        availableForSale: variant.stock > 0 && Boolean(variant.stripeProductID),
+        ...info.options.reduce(
+          (accumulator, option) => ({
+            ...accumulator,
+            [option.key.slug]: option.slug,
+          }),
+          {} as Record<string, string>,
+        ),
+      }
+    })
 
   return variantKeys.map((key) => {
-    const options = key.options
+    // Convert values to options format
+    const options =
+      key.values?.map((value) => ({
+        slug: value.slug ?? '',
+        label: value.label ?? '',
+      })) ?? []
 
     return (
       <dl className="mb-8" key={key.slug}>
@@ -78,9 +86,9 @@ export function VariantSelector({ product }: { product: Product }) {
               const filtered = Array.from(optionSearchParams.entries()).filter(([key, value]) =>
                 variants.find((variant) => {
                   const variantInfo = variant.info as InfoType
-                  const option = variantInfo.options.find((option) => option.key.slug === key)
+                  const option = variantInfo.options.find((opt) => opt.key.slug === key)
 
-                  return option.slug === value
+                  return option?.slug === value
                 }),
               )
 

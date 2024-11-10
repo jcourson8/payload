@@ -1,5 +1,7 @@
 'use client'
 import type { OptionObject, TextField } from 'payload'
+import { type ReactSelectOption } from '@payloadcms/ui'
+
 import type Stripe from 'stripe'
 
 import { useField, useFieldProps, useFormFields, withCondition } from '@payloadcms/ui'
@@ -18,7 +20,7 @@ type ProductOption = {
   value: string
 }
 
-const Component: React.FC<TextField> = (props) => {
+const StripeProductSelect: React.FC<TextField> = (props) => {
   const { label } = props
   const { path } = useFieldProps()
   const { setValue, value: stripeProductID } = useField<string>({ path })
@@ -77,7 +79,9 @@ const Component: React.FC<TextField> = (props) => {
   }, [])
 
   const handleUpdate = useCallback(
-    (newValue: OptionObject) => {
+    (newValue: ReactSelectOption | ReactSelectOption[]) => {
+      if (Array.isArray(newValue)) return
+
       const existingInfo = info ? (info as InfoType) : {}
 
       const newInfo: Partial<InfoType> = {
@@ -124,7 +128,13 @@ const Component: React.FC<TextField> = (props) => {
         .
       </p>
 
-      <SelectInput onChange={handleUpdate} options={options} path={path} value={stripeProductID} />
+      <SelectInput
+        name={path}
+        onChange={handleUpdate}
+        options={options}
+        path={path}
+        value={stripeProductID}
+      />
       {Boolean(stripeProductID) && (
         <div
           style={{
@@ -167,5 +177,4 @@ const Component: React.FC<TextField> = (props) => {
   )
 }
 
-/* @ts-expect-error */
-export const StripeProductSelect = withCondition(Component)
+export default withCondition(StripeProductSelect)

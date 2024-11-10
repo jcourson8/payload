@@ -5,7 +5,7 @@ import type { CollectionBeforeChangeHook } from 'payload'
 import Stripe from 'stripe'
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-const stripe = new Stripe(stripeSecretKey || '', { apiVersion: '2022-08-01' })
+const stripe = new Stripe(stripeSecretKey || '', { apiVersion: '2024-10-28.acacia' })
 
 const logs = false
 

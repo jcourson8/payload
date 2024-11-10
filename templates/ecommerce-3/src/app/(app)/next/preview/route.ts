@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 
 const payloadToken = 'payload-token'
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function GET(
   req: Request & {
     cookies: {
@@ -23,16 +22,23 @@ export async function GET(
   }
 
   if (!token) {
-    new Response('You are not allowed to preview this page', { status: 403 })
-  }
-
-  const user = jwt.decode(token, process.env.PAYLOAD_SECRET)
-
-  if (!user) {
-    draftMode().disable()
     return new Response('You are not allowed to preview this page', { status: 403 })
   }
 
-  draftMode().enable()
-  redirect(path)
+  try {
+    const user = jwt.verify(token, process.env.PAYLOAD_SECRET as string)
+    const draft = await draftMode()
+
+    if (!user) {
+      draft.disable()
+      return new Response('You are not allowed to preview this page', { status: 403 })
+    }
+
+    draft.enable()
+    redirect(path)
+  } catch (err) {
+    const draft = await draftMode()
+    draft.disable()
+    return new Response('Invalid token', { status: 403 })
+  }
 }

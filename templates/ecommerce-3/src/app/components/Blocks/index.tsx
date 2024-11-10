@@ -18,7 +18,9 @@ const blockComponents = {
   formBlock: FormBlock,
   mediaBlock: MediaBlock,
   threeItemGrid: ThreeItemGridBlock,
-}
+} as const
+
+type BlockType = keyof typeof blockComponents
 
 export const Blocks: React.FC<{
   blocks: Page['layout'][0][]
@@ -34,12 +36,12 @@ export const Blocks: React.FC<{
           const { blockName, blockType } = block
 
           if (blockType && blockType in blockComponents) {
-            const Block = blockComponents[blockType]
+            const Block = blockComponents[blockType as BlockType]
 
             if (Block) {
               return (
                 <div className="my-16" key={index}>
-                  <Block id={toKebabCase(blockName)} {...block} />
+                  <Block {...(block as any)} />
                 </div>
               )
             }

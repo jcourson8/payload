@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 
 import type { Option } from '../types'
 
-export const OptionLabel: React.FC = () => {
+const OptionLabel: React.FC = () => {
   const { data, rowNumber } = useRowLabel<Option>()
   const [label, setLabel] = useState(`Option ${rowNumber}`)
 
@@ -22,3 +22,5 @@ export const OptionLabel: React.FC = () => {
     </div>
   )
 }
+
+export default OptionLabel

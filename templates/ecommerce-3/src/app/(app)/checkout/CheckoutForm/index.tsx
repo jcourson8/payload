@@ -24,7 +24,7 @@ export const CheckoutForm: React.FC = () => {
 
   const fetchRetry = useCallback(
     async (url: string, fetchOptions = {}, delay = 750, tries = 3): Promise<any> => {
-      function onError(err) {
+      function onError(err: Error) {
         const triesLeft = tries - 1
         if (!triesLeft) {
           throw err
@@ -38,35 +38,37 @@ export const CheckoutForm: React.FC = () => {
   )
 
   const handleSubmit = useCallback(
-    async (e) => {
+    async (e: React.FormEvent) => {
       e.preventDefault()
       setIsLoading(true)
 
+      if (!stripe || !elements) {
+        setError('Stripe has not been initialized')
+        return
+      }
+
       try {
-        const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+        const result = await stripe.confirmPayment({
+          elements,
           confirmParams: {
             return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/order-confirmation`,
           },
-          elements,
           redirect: 'if_required',
         })
 
-        if (stripeError) {
-          setError(stripeError.message)
+        if (result.error) {
+          setError(result.error.message ?? 'An unknown error occurred')
           setIsLoading(false)
+          return
         }
 
-        if (paymentIntent?.id) {
-          /**
-           * We need to wait for an order to be created on the backend, so we try a few fetches
-           * with a delay in between to give the server time to process the order
-           */
+        if (result.paymentIntent?.status === 'succeeded') {
           try {
             const query = new URLSearchParams()
 
             query.append('limit', '1')
             query.append('depth', '0')
-            query.append('where', `[stripePaymentIntentID][equals]=${paymentIntent.id}`)
+            query.append('where', `[stripePaymentIntentID][equals]=${result.paymentIntent.id}`)
 
             const url = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/orders?${query.toString()}`
 
@@ -77,9 +79,9 @@ export const CheckoutForm: React.FC = () => {
               })
                 .then((res) => res.json())
                 .then((data) => {
-                  console.log('received', data, 'for payment', paymentIntent)
+                  console.log('received', data, 'for payment', result.paymentIntent)
 
-                  const redirect = `/orders/${data.docs?.[0]?.id}?paymentId=${paymentIntent.id}`
+                  const redirect = `/orders/${data.docs?.[0]?.id}?paymentId=${result.paymentIntent.id}`
                   clearCart()
                   router.push(redirect)
                 })
@@ -88,15 +90,14 @@ export const CheckoutForm: React.FC = () => {
                 })
             }, 3000)
           } catch (err) {
-            // don't throw an error if the order was not created successfully
-            // this is because payment _did_ in fact go through, and we don't want the user to pay twice
-            console.error(err.message) // eslint-disable-line no-console
-            router.push(`/order-confirmation?error=${encodeURIComponent(err.message)}`)
+            const error = err as Error
+            console.error(error.message)
+            router.push(`/order-confirmation?error=${encodeURIComponent(error.message)}`)
           }
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Something went wrong.'
-        setError(`Error while submitting payment: ${msg}`)
+        const error = err as Error
+        setError(`Error while submitting payment: ${error.message}`)
         setIsLoading(false)
       }
     },

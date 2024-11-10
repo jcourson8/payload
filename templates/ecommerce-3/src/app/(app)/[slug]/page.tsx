@@ -49,14 +49,30 @@ export async function generateMetadata({ params: { slug = 'home' } }): Promise<M
     slug,
   })
 
+  // Return basic metadata if page is not found
+  if (!page) {
+    return {
+      title: 'Page Not Found',
+    }
+  }
+
   return generateMeta({ doc: page })
 }
 
 const queryPageBySlug = async ({ slug }: { slug: string }) => {
-  const { isEnabled: draft } = draftMode()
+  const draftModeData = await draftMode()
+  const draft = draftModeData.isEnabled
 
   const payload = await getPayloadHMR({ config: configPromise })
-  const authResult = draft ? await payload.auth({ headers: headers() }) : undefined
+  const headersData = await headers()
+
+  // Convert Next.js headers to standard Headers object
+  const headersList = new Headers()
+  for (const [key, value] of headersData.entries()) {
+    headersList.set(key, value)
+  }
+
+  const authResult = draft ? await payload.auth({ headers: headersList }) : undefined
 
   const user = authResult?.user
 

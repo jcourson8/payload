@@ -1,11 +1,11 @@
 import type { GenerateTitle } from '@payloadcms/plugin-seo/types'
 
 import { Page, Product } from '@/payload-types'
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { postgresAdapter } from '@payloadcms/db-postgres'
+import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
-import { payloadCloudPlugin } from '@payloadcms/plugin-cloud'
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
-import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
+// import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { stripePlugin } from '@payloadcms/plugin-stripe'
@@ -29,8 +29,6 @@ import { Orders } from './payload/collections/Orders'
 import { Pages } from './payload/collections/Pages'
 import { Products } from './payload/collections/Products'
 import { Users } from './payload/collections/Users'
-import { BeforeDashboard } from './payload/components/BeforeDashboard'
-import { BeforeLogin } from './payload/components/BeforeLogin'
 import { createPaymentIntent } from './payload/endpoints/create-payment-intent'
 import { customersProxy } from './payload/endpoints/customers'
 import { productsProxy } from './payload/endpoints/products'
@@ -48,7 +46,7 @@ export type GenerateTitle2<T = unknown> = (args: {
   locale?: string
 }) => Promise<string> | string
 
-const generateTitle: GenerateTitle = <Page>({ doc }) => {
+const generateTitle: GenerateTitle = ({ doc }: { doc: Page }) => {
   return `${doc?.title ?? ''} | My Store`
 }
 
@@ -57,16 +55,18 @@ export default buildConfig({
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
-      beforeLogin: [BeforeLogin],
+      beforeLogin: ['@/payload/components/BeforeLogin'],
       // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
-      beforeDashboard: [BeforeDashboard],
+      beforeDashboard: ['@/payload/components/BeforeDashboard'],
     },
     user: Users.slug,
   },
   collections: [Users, Products, Pages, Categories, Media, Orders],
-  db: mongooseAdapter({
-    url: process.env.DATABASE_URI || '',
+  db: vercelPostgresAdapter({
+    pool: {
+      connectionString: process.env.POSTGRES_URL,
+    },
   }),
   editor: lexicalEditor({
     features: () => {
@@ -111,19 +111,18 @@ export default buildConfig({
       method: 'post',
       path: '/create-payment-intent',
     },
-    /*
     {
       handler: customersProxy,
       method: 'get',
       path: '/stripe/customers',
-    }, */
+    },
     // The seed endpoint is used to populate the database with some example data
     // You should delete this endpoint before deploying your site to production
-    /* {
+    {
       handler: seed,
       method: 'get',
       path: '/seed',
-    }, */
+    },
   ],
   globals: [Footer, Header],
   plugins: [
@@ -164,7 +163,6 @@ export default buildConfig({
       generateTitle,
       uploadsCollection: 'media',
     }),
-    payloadCloudPlugin(),
   ],
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

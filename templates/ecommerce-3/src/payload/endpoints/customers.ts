@@ -4,6 +4,10 @@ import Stripe from 'stripe'
 
 import { checkRole } from '../collections/Users/checkRole'
 
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY is required')
+}
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2022-08-01',
 })

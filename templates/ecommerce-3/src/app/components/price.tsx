@@ -55,6 +55,10 @@ const Price = ({
     )
   }
 
+  if (!lowestAmount) {
+    return null
+  }
+
   return (
     <p className={className} suppressHydrationWarning>
       {`${new Intl.NumberFormat(undefined, {

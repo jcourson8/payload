@@ -69,7 +69,6 @@ export const ResetPasswordForm: React.FC = () => {
         <Label htmlFor="password">New password</Label>
         <Input
           id="password"
-          name="password"
           {...register('password', { required: true })}
           required
           type="password"

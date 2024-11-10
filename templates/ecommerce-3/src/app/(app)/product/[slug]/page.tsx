@@ -56,19 +56,19 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   if (!product) return notFound()
 
-  const variants = product.enableVariants ? product.variants.variants : []
+  const variants = product.enableVariants ? (product.variants?.variants ?? []) : []
 
-  const metaImage = typeof product.meta?.image !== 'string' ? product.meta.image : undefined
+  const metaImage = typeof product?.meta?.image !== 'string' ? product?.meta?.image : undefined
   const hasStock = product.enableVariants
     ? variants?.some((variant) => variant?.stock > 0)
-    : product.stock > 0
+    : (product.stock ?? 0) > 0
 
   const productJsonLd = {
     name: product.title,
     '@context': 'https://schema.org',
     '@type': 'Product',
     description: product.description,
-    image: metaImage?.url,
+    image: typeof metaImage === 'object' ? metaImage?.url : undefined,
     offers: {
       '@type': 'AggregateOffer',
       availability: hasStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -80,16 +80,18 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const relatedProducts =
     product.relatedProducts?.filter((relatedProduct) => typeof relatedProduct !== 'string') ?? []
 
-  const gallery = product.gallery.map((image) => {
-    if (typeof image.image !== 'string') return image.image
-  })
+  const gallery = (
+    product.gallery?.map((image) => {
+      if (typeof image.image !== 'string') return image.image
+    }) ?? []
+  ).filter((image): image is Media => !!image)
 
   if (variants.length) {
     variants.forEach((variant) => {
-      if (variant?.images.length) {
+      if (variant?.images?.length) {
         variant.images.forEach((image) => {
-          if (typeof image.image !== 'string') {
-            gallery.push(image.image)
+          if (typeof image.image !== 'string' && image.image !== null) {
+            gallery.push(image.image as Media)
           }
         })
       }
@@ -121,7 +123,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </div>
         </div>
       </div>
-      <Blocks blocks={product.layout} />
+      <Blocks blocks={product.layout || []} />
       {relatedProducts.length && (
         <div className="container">
           <RelatedProducts products={relatedProducts as Product[]} />
@@ -146,11 +148,11 @@ function RelatedProducts({ products }: { products: Product[] }) {
             <Link className="relative h-full w-full" href={`/product/${product.slug}`}>
               <GridTileImage
                 label={{
-                  amount: product.price,
-                  currencyCode: product.currency,
+                  amount: product.price ?? 0,
+                  currencyCode: product.currency ?? '',
                   title: product.title,
                 }}
-                media={product.meta.image as Media}
+                media={(product.meta?.image as Media) || null}
               />
             </Link>
           </li>
@@ -161,10 +163,19 @@ function RelatedProducts({ products }: { products: Product[] }) {
 }
 
 const queryProductBySlug = async ({ slug }: { slug: string }) => {
-  const { isEnabled: draft } = draftMode()
+  const draftModeData = await draftMode()
+  const draft = draftModeData.isEnabled
 
   const payload = await getPayloadHMR({ config: configPromise })
-  const authResult = draft ? await payload.auth({ headers: headers() }) : undefined
+  const headersList = await headers()
+
+  // Convert ReadonlyHeaders to regular Headers
+  const headersObj = new Headers()
+  headersList.forEach((value, key) => {
+    headersObj.append(key, value)
+  })
+
+  const authResult = draft ? await payload.auth({ headers: headersObj }) : undefined
 
   const user = authResult?.user
 

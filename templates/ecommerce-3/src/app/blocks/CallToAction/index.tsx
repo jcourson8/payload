@@ -20,7 +20,19 @@ export const CallToActionBlock: React.FC<
         </div>
         <div className="flex flex-col gap-8">
           {(links || []).map(({ link }, i) => {
-            return <CMSLink key={i} size="lg" {...link} />
+            const sanitizedLink = {
+              ...link,
+              newTab: link.newTab ?? undefined,
+              reference: link.reference
+                ? {
+                    relationTo: link.reference.relationTo,
+                    value: String(link.reference.value),
+                  }
+                : undefined,
+              type: link.type ?? undefined,
+              url: link.url ?? undefined,
+            }
+            return <CMSLink key={i} size="lg" {...sanitizedLink} />
           })}
         </div>
       </div>
